@@ -1,0 +1,198 @@
+{% extends "admin_layout.html" %}
+
+{% block title %}Test Management - Faculty Admin Portal{% endblock %}
+{% block page_title %}Test Management{% endblock %}
+
+{% block admin_content %}
+<!-- Create New Exam Form Card -->
+<div class="card" style="border-top: 4px solid var(--indigo-600); margin-bottom: 2.5rem;">
+    <div class="card-header">
+        <h2 class="card-title"><i class="fa-solid fa-plus-circle text-primary"></i> Create New Examination</h2>
+        <span class="badge badge-primary">Step 1 of 2</span>
+    </div>
+
+    <form method="POST" action="{{ url_for('admin.exams') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="form-group">
+            <label for="title" class="form-label">Examination Title <span style="color: var(--danger-500);">*</span></label>
+            <input 
+                type="text" 
+                id="title" 
+                name="title" 
+                class="form-input" 
+                placeholder="e.g. Data Structures &amp; Algorithms Midterm" 
+                required
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="description" class="form-label">Description &amp; Syllabus Scope</label>
+            <textarea 
+                id="description" 
+                name="description" 
+                class="form-textarea" 
+                rows="2" 
+                placeholder="Brief guidelines, covered chapters, or prerequisite topics..."
+            ></textarea>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.25rem;">
+            <div>
+                <label for="duration_minutes" class="form-label">Duration (Minutes) <span style="color: var(--danger-500);">*</span></label>
+                <input 
+                    type="number" 
+                    id="duration_minutes" 
+                    name="duration_minutes" 
+                    class="form-input" 
+                    value="30" 
+                    min="1" 
+                    max="360" 
+                    required
+                >
+            </div>
+
+            <div>
+                <label for="total_marks" class="form-label">Total Marks <span style="color: var(--danger-500);">*</span></label>
+                <input 
+                    type="number" 
+                    id="total_marks" 
+                    name="total_marks" 
+                    class="form-input" 
+                    value="100" 
+                    min="1" 
+                    required
+                >
+            </div>
+
+            <div>
+                <label for="passing_percentage" class="form-label">Pass Benchmark (%) <span style="font-size: 0.75rem; color: var(--text-muted);">(Optional)</span></label>
+                <input 
+                    type="number" 
+                    id="passing_percentage" 
+                    name="passing_percentage" 
+                    class="form-input" 
+                    placeholder="e.g. 40" 
+                    min="0" 
+                    max="100" 
+                    step="0.5"
+                >
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-check">
+                <input type="checkbox" name="is_published" value="1" checked>
+                <span><strong>Publish immediately:</strong> Make this examination visible and attemptable by students upon creation.</span>
+            </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i> Save &amp; Proceed to Add Questions &rarr;
+        </button>
+    </form>
+</div>
+
+<!-- List of Existing Exams -->
+<div class="card">
+    <div class="card-header">
+        <div>
+            <h2 class="card-title"><i class="fa-solid fa-folder-tree text-primary"></i> All Configured Examinations</h2>
+            <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem;">
+                Toggle test publication or author questions for active tests.
+            </div>
+        </div>
+
+        <div style="position: relative; width: 100%; max-width: 280px;">
+            <input 
+                type="text" 
+                class="form-input" 
+                placeholder="Filter exams..." 
+                data-table-search="#admin-exams-table"
+                style="padding-left: 2.25rem;"
+            >
+            <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: var(--text-light);"></i>
+        </div>
+    </div>
+
+    {% if exams %}
+        <div class="table-responsive">
+            <table class="data-table" id="admin-exams-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Title &amp; Scope</th>
+                        <th>Timing</th>
+                        <th>Total Marks</th>
+                        <th>Questions Bank</th>
+                        <th>Publication Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for exam in exams %}
+                        <tr>
+                            <td><code>#EX-{{ exam.id }}</code></td>
+                            <td>
+                                <strong style="font-size: 1rem; color: var(--navy-900);">{{ exam.title }}</strong>
+                                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">
+                                    {{ exam.description or 'No extra notes.' }}
+                                </div>
+                            </td>
+                            <td><i class="fa-regular fa-clock"></i> {{ exam.duration_minutes }} mins</td>
+                            <td>
+                                <div><strong>{{ exam.total_marks }}</strong> pts</div>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('admin.exam_questions', exam_id=exam.id) }}" class="btn btn-outline btn-sm">
+                                    <i class="fa-solid fa-list-check"></i> {{ exam.questions|length }} Questions
+                                </a>
+                            </td>
+                            <td>
+                                {% if exam.is_published %}
+                                    <span class="badge badge-success"><i class="fa-solid fa-circle"></i> Published</span>
+                                {% else %}
+                                    <span class="badge badge-warning"><i class="fa-solid fa-eye-slash"></i> Draft</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div style="display: flex; gap: 0.4rem; align-items: center;">
+                                    <!-- Edit Details -->
+                                    <a href="{{ url_for('admin.edit_exam', exam_id=exam.id) }}" class="btn btn-outline btn-sm" title="Edit Test Details">
+                                        <i class="fa-solid fa-pen-to-square"></i> Edit
+                                    </a>
+
+                                    <!-- Toggle Status Form -->
+                                    <form method="POST" action="{{ url_for('admin.toggle_exam', exam_id=exam.id) }}" style="display: inline;">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-secondary btn-sm" title="{% if exam.is_published %}Unpublish Test{% else %}Publish Test{% endif %}" onclick="return confirm('Change publication status for this test?');">
+                                            {% if exam.is_published %}
+                                                <i class="fa-solid fa-pause"></i> Pause
+                                            {% else %}
+                                                <i class="fa-solid fa-play"></i> Publish
+                                            {% endif %}
+                                        </button>
+                                    </form>
+
+                                    <!-- Delete Form -->
+                                    <form method="POST" action="{{ url_for('admin.delete_exam', exam_id=exam.id) }}" onsubmit="return confirm('CONFIRM DELETION:\nAre you sure you want to delete examination \'{{ exam.title }}\'?\n\nIf student attempts already exist, deletion will be blocked to preserve historical student grades.');" style="display: inline;">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-danger btn-sm" title="Delete Examination">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon"><i class="fa-solid fa-folder-open"></i></div>
+            <h3 class="empty-state-title">No Examinations Yet</h3>
+            <p class="empty-state-desc">Fill out the form above to initialize your first online test.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

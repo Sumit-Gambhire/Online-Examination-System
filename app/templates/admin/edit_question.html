@@ -1,0 +1,97 @@
+{% extends "admin_layout.html" %}
+
+{% block title %}Edit Question - {{ test.title }} - Faculty Portal{% endblock %}
+{% block page_title %}Edit Question{% endblock %}
+
+{% block admin_content %}
+<div style="max-width: 850px; margin: 0 auto;">
+    <div class="card" style="border-top: 4px solid var(--indigo-600);">
+        <div class="card-header">
+            <div>
+                <h2 class="card-title"><i class="fa-solid fa-pen-to-square text-primary"></i> Edit Multiple Choice Question</h2>
+                <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem;">
+                    Belongs to Examination: <strong>{{ test.title }}</strong>
+                </div>
+            </div>
+            <span class="badge badge-primary">{{ question.marks }} Marks</span>
+        </div>
+
+        <form method="POST" action="{{ url_for('admin.edit_question', question_id=question.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="form-group">
+                <label for="question_text" class="form-label">Question Text <span style="color: var(--danger-500);">*</span></label>
+                <textarea 
+                    id="question_text" 
+                    name="question_text" 
+                    class="form-textarea" 
+                    rows="3" 
+                    required
+                >{{ question.question_text }}</textarea>
+            </div>
+
+            <div class="form-group" style="max-width: 220px;">
+                <label for="marks" class="form-label">Question Marks <span style="color: var(--danger-500);">*</span></label>
+                <input 
+                    type="number" 
+                    id="marks" 
+                    name="marks" 
+                    class="form-input" 
+                    value="{{ question.marks }}" 
+                    min="1" 
+                    max="50" 
+                    required
+                >
+            </div>
+
+            <div style="margin-top: 1.5rem; margin-bottom: 1.25rem;">
+                <label class="form-label" style="margin-bottom: 0.5rem;">
+                    Four Options &amp; Exact Correct Answer Key <span style="color: var(--danger-500);">*</span>
+                </label>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">
+                    Ensure all four options are filled and select the radio button corresponding to the single correct key.
+                </p>
+
+                <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+                    <!-- Option A -->
+                    <div style="display: flex; align-items: center; gap: 0.75rem; background: var(--bg-hover); padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-light);">
+                        <input type="radio" name="correct_option" value="A" required id="edit-opt-A" {% if question.correct_option == 'A' %}checked{% endif %} style="width: 1.25rem; height: 1.25rem; accent-color: var(--success-600); cursor: pointer;" title="Mark Option A as correct">
+                        <label for="edit-opt-A" style="font-weight: 700; width: 1.5rem; cursor: pointer;">A.</label>
+                        <input type="text" name="option_a" class="form-input" value="{{ question.option_a }}" required style="background: #ffffff;">
+                    </div>
+
+                    <!-- Option B -->
+                    <div style="display: flex; align-items: center; gap: 0.75rem; background: var(--bg-hover); padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-light);">
+                        <input type="radio" name="correct_option" value="B" required id="edit-opt-B" {% if question.correct_option == 'B' %}checked{% endif %} style="width: 1.25rem; height: 1.25rem; accent-color: var(--success-600); cursor: pointer;" title="Mark Option B as correct">
+                        <label for="edit-opt-B" style="font-weight: 700; width: 1.5rem; cursor: pointer;">B.</label>
+                        <input type="text" name="option_b" class="form-input" value="{{ question.option_b }}" required style="background: #ffffff;">
+                    </div>
+
+                    <!-- Option C -->
+                    <div style="display: flex; align-items: center; gap: 0.75rem; background: var(--bg-hover); padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-light);">
+                        <input type="radio" name="correct_option" value="C" required id="edit-opt-C" {% if question.correct_option == 'C' %}checked{% endif %} style="width: 1.25rem; height: 1.25rem; accent-color: var(--success-600); cursor: pointer;" title="Mark Option C as correct">
+                        <label for="edit-opt-C" style="font-weight: 700; width: 1.5rem; cursor: pointer;">C.</label>
+                        <input type="text" name="option_c" class="form-input" value="{{ question.option_c }}" required style="background: #ffffff;">
+                    </div>
+
+                    <!-- Option D -->
+                    <div style="display: flex; align-items: center; gap: 0.75rem; background: var(--bg-hover); padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-light);">
+                        <input type="radio" name="correct_option" value="D" required id="edit-opt-D" {% if question.correct_option == 'D' %}checked{% endif %} style="width: 1.25rem; height: 1.25rem; accent-color: var(--success-600); cursor: pointer;" title="Mark Option D as correct">
+                        <label for="edit-opt-D" style="font-weight: 700; width: 1.5rem; cursor: pointer;">D.</label>
+                        <input type="text" name="option_d" class="form-input" value="{{ question.option_d }}" required style="background: #ffffff;">
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem;">
+                <a href="{{ url_for('admin.exam_questions', exam_id=test.id) }}" class="btn btn-secondary">
+                    <i class="fa-solid fa-arrow-left"></i> Cancel
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-floppy-disk"></i> Update Question
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

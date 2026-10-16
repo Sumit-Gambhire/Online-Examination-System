@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}About Project - Online Examination System{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 860px;">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title"><i class="fa-solid fa-graduation-cap text-primary"></i> About The Project</h2>
+            <span class="badge badge-info">College Mini Project</span>
+        </div>
+
+        <div style="font-size: 1rem; color: var(--text-main); line-height: 1.8;">
+            <p style="margin-bottom: 1.25rem;">
+                The <strong>Online Examination System</strong> is a full-stack web application developed as an academic mini-project. 
+                It aims to simplify test administration, reduce manual grading overhead, and provide students with a modern, responsive testing environment.
+            </p>
+
+            <h3 style="font-size: 1.15rem; margin-top: 1.5rem; margin-bottom: 0.75rem; color: var(--text-main);">
+                <i class="fa-solid fa-layer-group"></i> Architecture &amp; Technology Stack
+            </h3>
+            <ul style="padding-left: 1.5rem; margin-bottom: 1.5rem; color: var(--text-muted);">
+                <li><strong>Backend:</strong> Python 3 with Flask web framework</li>
+                <li><strong>Database &amp; ORM:</strong> SQLite 3 with Flask-SQLAlchemy (relational schema)</li>
+                <li><strong>Authentication:</strong> Flask-Login with Werkzeug password hashing</li>
+                <li><strong>Templates &amp; UI:</strong> Jinja2 templating, Semantic HTML5, CSS3 Variables, Vanilla JavaScript</li>
+                <li><strong>Icons:</strong> Font Awesome 6 (free web icon font)</li>
+            </ul>
+
+            <h3 style="font-size: 1.15rem; margin-top: 1.5rem; margin-bottom: 0.75rem; color: var(--text-main);">
+                <i class="fa-solid fa-shield-halved"></i> Key System Modules
+            </h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+                <div style="background-color: var(--bg-main); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                    <strong><i class="fa-solid fa-user-graduate"></i> Student Module</strong>
+                    <p style="font-size: 0.875rem; color: var(--text-muted); margin-top: 0.35rem;">
+                        View enrolled/active exams, take timed assessments, review automated evaluation scores and historical test submissions.
+                    </p>
+                </div>
+                <div style="background-color: var(--bg-main); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                    <strong><i class="fa-solid fa-user-tie"></i> Faculty / Admin Module</strong>
+                    <p style="font-size: 0.875rem; color: var(--text-muted); margin-top: 0.35rem;">
+                        Create and schedule tests, manage multiple choice question banks, configure pass marks, and monitor student performances.
+                    </p>
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+                <a href="{{ url_for('main.index') }}" class="btn btn-outline">
+                    <i class="fa-solid fa-arrow-left"></i> Back to Home
+                </a>
+                <a href="{{ url_for('auth.login') }}" class="btn btn-primary">
+                    <i class="fa-solid fa-right-to-bracket"></i> Login Now
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

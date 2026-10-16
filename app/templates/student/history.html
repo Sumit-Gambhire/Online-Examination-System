@@ -1,0 +1,222 @@
+{% extends "student_layout.html" %}
+
+{% block title %}Examination History - Online Examination System{% endblock %}
+{% block page_title %}My Performance &amp; Result History{% endblock %}
+
+{% block student_content %}
+<!-- History Aggregate Metric Cards -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon primary">
+            <i class="fa-solid fa-list-check"></i>
+        </div>
+        <div>
+            <div class="stat-value">{{ total_exams }}</div>
+            <div class="stat-label">Total Completed Tests</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon success">
+            <i class="fa-solid fa-trophy"></i>
+        </div>
+        <div>
+            <div class="stat-value">{{ passed_exams }}</div>
+            <div class="stat-label">Passed Tests</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon warning">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <div>
+            <div class="stat-value">{{ failed_exams }}</div>
+            <div class="stat-label">Failed Tests</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon sky">
+            <i class="fa-solid fa-chart-pie"></i>
+        </div>
+        <div>
+            <div class="stat-value">
+                {% if (passed_exams + failed_exams) > 0 %}
+                    {{ ((passed_exams / (passed_exams + failed_exams)) * 100) | round(1) }}%
+                {% else %}
+                    N/A
+                {% endif %}
+            </div>
+            <div class="stat-label">Passing Success Rate</div>
+        </div>
+    </div>
+</div>
+
+<!-- History Table & Filter Card -->
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid var(--border-light); padding-bottom: 1.25rem; margin-bottom: 1.25rem;">
+        <div>
+            <h2 class="card-title" style="margin: 0;"><i class="fa-solid fa-clock-rotate-left text-primary"></i> Submissions Log</h2>
+            <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem;">
+                Official records of all evaluated online examinations for <strong>{{ current_user.full_name }}</strong>.
+            </div>
+        </div>
+
+        <!-- Filter & Search Form -->
+        <form method="GET" action="{{ url_for('student.history') }}" style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+            <!-- Status Filter -->
+            <select name="status" class="form-input" style="width: auto; padding: 0.45rem 1rem;" onchange="this.form.submit()">
+                <option value="all" {% if status_filter == 'all' or not status_filter %}selected{% endif %}>All Results</option>
+                <option value="passed" {% if status_filter == 'passed' %}selected{% endif %}>Passed Only</option>
+                <option value="failed" {% if status_filter == 'failed' %}selected{% endif %}>Failed Only</option>
+            </select>
+
+            <!-- Search Field -->
+            <div style="position: relative;">
+                <input 
+                    type="text" 
+                    name="q" 
+                    value="{{ search_query }}"
+                    class="form-input" 
+                    placeholder="Search test title..." 
+                    style="padding-left: 2rem; width: 220px;"
+                >
+                <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--text-light); font-size: 0.85rem;"></i>
+            </div>
+
+            {% if search_query or status_filter != 'all' %}
+                <a href="{{ url_for('student.history') }}" class="btn btn-secondary btn-sm" title="Clear search and filters">
+                    <i class="fa-solid fa-xmark"></i> Clear
+                </a>
+            {% endif %}
+        </form>
+    </div>
+
+    {% if results %}
+        <div class="table-responsive">
+            <table class="data-table" id="history-table">
+                <thead>
+                    <tr>
+                        <th>Attempt ID</th>
+                        <th>Examination Title</th>
+                        <th>Submission Timestamp</th>
+                        <th>Time Taken</th>
+                        <th>Score Obtained</th>
+                        <th>Percentage</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for res in results %}
+                        <tr>
+                            <td><code>#ATT-{{ res.id }}</code></td>
+                            <td>
+                                <strong style="font-size: 0.95rem; color: var(--navy-900);">{{ res.test.title }}</strong>
+                            </td>
+                            <td>
+                                {% if res.submitted_at %}
+                                    <div style="font-weight: 600; color: var(--navy-800);">{{ res.submitted_at.strftime('%b %d, %Y') }}</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted);">{{ res.submitted_at.strftime('%I:%M %p') }}</div>
+                                {% else %}
+                                    <div>Today</div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge badge-neutral">
+                                    <i class="fa-regular fa-clock"></i> {{ res.formatted_time_taken }}
+                                </span>
+                            </td>
+                            <td>
+                                <strong>{{ res.score }}</strong> / {{ res.maximum_marks }} pts
+                            </td>
+                            <td>
+                                <span style="font-weight: 700; color: {% if res.is_passed %}var(--success-600){% elif res.is_passed is false %}var(--danger-600){% else %}var(--indigo-600){% endif %}; font-size: 1rem;">
+                                    {{ res.percentage }}%
+                                </span>
+                            </td>
+                            <td>
+                                {% if res.has_passing_threshold %}
+                                    {% if res.is_passed %}
+                                        <span class="badge badge-success"><i class="fa-solid fa-check"></i> Passed</span>
+                                    {% else %}
+                                        <span class="badge badge-danger"><i class="fa-solid fa-xmark"></i> Failed</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="badge badge-info"><i class="fa-solid fa-circle-check"></i> Evaluated</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('student.view_result', result_id=res.id) }}" class="btn btn-primary btn-sm">
+                                    <i class="fa-solid fa-file-invoice"></i> View Breakdown
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination Controls -->
+        {% if pagination and pagination.pages > 1 %}
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-light); flex-wrap: wrap; gap: 1rem;">
+                <div style="font-size: 0.85rem; color: var(--text-muted);">
+                    Showing page <strong>{{ pagination.page }}</strong> of <strong>{{ pagination.pages }}</strong> (Total: {{ pagination.total }} records)
+                </div>
+                <div style="display: flex; gap: 0.35rem;">
+                    {% if pagination.has_prev %}
+                        <a href="{{ url_for('student.history', page=pagination.prev_num, q=search_query, status=status_filter) }}" class="btn btn-secondary btn-sm">
+                            &laquo; Previous
+                        </a>
+                    {% endif %}
+
+                    {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                        {% if p %}
+                            {% if p == pagination.page %}
+                                <span class="btn btn-primary btn-sm" style="pointer-events: none;">{{ p }}</span>
+                            {% else %}
+                                <a href="{{ url_for('student.history', page=p, q=search_query, status=status_filter) }}" class="btn btn-secondary btn-sm">
+                                    {{ p }}
+                                </a>
+                            {% endif %}
+                        {% else %}
+                            <span style="padding: 0.35rem 0.5rem; color: var(--text-muted);">...</span>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if pagination.has_next %}
+                        <a href="{{ url_for('student.history', page=pagination.next_num, q=search_query, status=status_filter) }}" class="btn btn-secondary btn-sm">
+                            Next &raquo;
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon"><i class="fa-solid fa-file-lines"></i></div>
+            <h3 class="empty-state-title">No Submissions Found</h3>
+            <p class="empty-state-desc">
+                {% if search_query or status_filter != 'all' %}
+                    No examination records match your filter criteria. Try clearing your filters.
+                {% else %}
+                    You have not completed any examinations yet. Head over to Available Examinations to begin!
+                {% endif %}
+            </p>
+            <div style="margin-top: 1rem;">
+                {% if search_query or status_filter != 'all' %}
+                    <a href="{{ url_for('student.history') }}" class="btn btn-secondary">
+                        <i class="fa-solid fa-rotate-left"></i> Reset Filter
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('student.exams') }}" class="btn btn-primary">
+                        <i class="fa-solid fa-play"></i> Browse Available Exams
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

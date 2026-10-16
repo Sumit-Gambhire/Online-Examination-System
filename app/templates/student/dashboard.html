@@ -1,0 +1,176 @@
+{% extends "student_layout.html" %}
+
+{% block title %}Student Dashboard - Online Examination System{% endblock %}
+{% block page_title %}Student Overview{% endblock %}
+
+{% block student_content %}
+<!-- Welcome Banner -->
+<div style="background: linear-gradient(135deg, var(--navy-900), var(--indigo-700)); color: #fff; padding: 2rem; border-radius: var(--radius-lg); margin-bottom: 2rem; box-shadow: var(--shadow-md); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem;">
+    <div>
+        <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(255, 255, 255, 0.15); padding: 0.25rem 0.75rem; border-radius: var(--radius-full); font-size: 0.8rem; margin-bottom: 0.75rem;">
+            <i class="fa-solid fa-graduation-cap"></i> Student Portal Active
+        </div>
+        <h1 style="font-size: 1.75rem; font-weight: 800; line-height: 1.2;">Welcome back, {{ current_user.full_name }}!</h1>
+        <p style="color: #cbd5e1; font-size: 0.925rem; margin-top: 0.35rem;">
+            Select an active examination below or review your automated grading history.
+        </p>
+    </div>
+    <div>
+        <a href="{{ url_for('student.exams') }}" class="btn btn-primary" style="background-color: #ffffff; color: var(--navy-900); box-shadow: none;">
+            <i class="fa-solid fa-list-check"></i> View All {{ available_exams|length }} Exams
+        </a>
+    </div>
+</div>
+
+<!-- Performance Metrics -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon primary">
+            <i class="fa-solid fa-file-signature"></i>
+        </div>
+        <div>
+            <div class="stat-value" data-counter="{{ total_taken }}">{{ total_taken }}</div>
+            <div class="stat-label">Exams Completed</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon success">
+            <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <div>
+            <div class="stat-value" data-counter="{{ passed_count }}">{{ passed_count }}</div>
+            <div class="stat-label">Tests Passed</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon warning">
+            <i class="fa-solid fa-chart-line"></i>
+        </div>
+        <div>
+            <div class="stat-value" data-counter="{{ average_score }}" data-counter-suffix="%">{{ average_score }}%</div>
+            <div class="stat-label">Cumulative Average</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon sky">
+            <i class="fa-solid fa-calendar-check"></i>
+        </div>
+        <div>
+            <div class="stat-value" data-counter="{{ available_exams|length }}">{{ available_exams|length }}</div>
+            <div class="stat-label">Active Assessments</div>
+        </div>
+    </div>
+</div>
+
+<!-- Available Exams Quick Table -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title"><i class="fa-solid fa-clipboard-question text-primary"></i> Available Examinations</h2>
+        <a href="{{ url_for('student.exams') }}" class="btn btn-outline btn-sm">Browse Catalog &rarr;</a>
+    </div>
+
+    {% if available_exams %}
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Examination</th>
+                        <th>Duration</th>
+                        <th>Marks</th>
+                        <th>Pass Criterion</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for exam in available_exams %}
+                        <tr>
+                            <td>
+                                <strong style="font-size: 0.975rem;">{{ exam.title }}</strong>
+                                <div style="font-size: 0.825rem; color: var(--text-muted); margin-top: 0.2rem;">
+                                    {{ exam.description or 'No additional instructions.' }}
+                                </div>
+                            </td>
+                            <td><i class="fa-regular fa-clock"></i> {{ exam.duration_minutes }} Mins</td>
+                            <td><strong>{{ exam.total_marks }}</strong> pts</td>
+                            <td>{{ (exam.total_marks * 0.4) | round | int }} pts (40% pass)</td>
+                            <td>
+                                <a href="{{ url_for('student.instructions', exam_id=exam.id) }}" class="btn btn-primary btn-sm">
+                                    <i class="fa-solid fa-arrow-right"></i> Start Exam
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon"><i class="fa-solid fa-folder-open"></i></div>
+            <h3 class="empty-state-title">No Active Tests Available</h3>
+            <p class="empty-state-desc">Your instructors have not activated any online examinations yet. Please check back later.</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Recent Submissions Overview -->
+<div class="card" style="margin-bottom: 0;">
+    <div class="card-header">
+        <h2 class="card-title"><i class="fa-solid fa-history"></i> Recent Test Attempts</h2>
+        <a href="{{ url_for('student.history') }}" class="btn btn-outline btn-sm">View Complete History</a>
+    </div>
+
+    {% if past_results %}
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Exam Title</th>
+                        <th>Date Taken</th>
+                        <th>Score</th>
+                        <th>Percentage</th>
+                        <th>Result</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for res in past_results[:5] %}
+                        <tr>
+                            <td><strong>{{ res.test.title }}</strong></td>
+                            <td>
+                                {% if res.submitted_at %}
+                                    {{ res.submitted_at.strftime('%b %d, %Y - %I:%M %p') }}
+                                {% else %}
+                                    Today
+                                {% endif %}
+                            </td>
+                            <td>{{ res.score }} / {{ res.test.total_marks }}</td>
+                            <td><strong>{{ res.percentage }}%</strong></td>
+                            <td>
+                                {% if res.is_passed %}
+                                    <span class="badge badge-success"><i class="fa-solid fa-check"></i> Passed</span>
+                                {% else %}
+                                    <span class="badge badge-danger"><i class="fa-solid fa-xmark"></i> Failed</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('student.view_result', result_id=res.id) }}" class="btn btn-secondary btn-sm">
+                                    <i class="fa-solid fa-eye"></i> View Result
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon"><i class="fa-solid fa-award"></i></div>
+            <h3 class="empty-state-title">No Exam Records Yet</h3>
+            <p class="empty-state-desc">You haven't completed any examinations. Take your first test from the available list above!</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

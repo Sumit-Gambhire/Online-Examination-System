@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Student Portal - Online Examination System{% endblock %}</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Custom Application CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="dashboard-shell">
+        <!-- Sidebar Navigation for Student -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="{{ url_for('student.dashboard') }}" class="sidebar-brand">
+                    <span class="brand-icon"><i class="fa-solid fa-graduation-cap"></i></span>
+                    <div>
+                        <div>ExamPortal</div>
+                        <div style="font-size: 0.65rem; color: #94a3b8; font-weight: 500;">Student Workspace</div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="sidebar-user-card">
+                <div class="user-avatar-circle">
+                    {{ current_user.full_name[:1] | upper }}
+                </div>
+                <div class="user-details">
+                    <div class="user-display-name" title="{{ current_user.full_name }}">{{ current_user.full_name }}</div>
+                    <div class="user-role-label">Enrolled Student</div>
+                </div>
+            </div>
+
+            <div class="sidebar-nav-section">
+                <div class="nav-section-title">Main Menu</div>
+                <ul class="sidebar-menu">
+                    <li>
+                        <a href="{{ url_for('student.dashboard') }}" class="sidebar-item-link {% if request.endpoint == 'student.dashboard' %}active{% endif %}">
+                            <i class="fa-solid fa-chart-pie"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('student.exams') }}" class="sidebar-item-link {% if request.endpoint in ['student.exams', 'student.instructions', 'student.take_exam'] %}active{% endif %}">
+                            <i class="fa-solid fa-file-signature"></i>
+                            <span>Available Exams</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('student.history') }}" class="sidebar-item-link {% if request.endpoint in ['student.history', 'student.view_result'] %}active{% endif %}">
+                            <i class="fa-solid fa-clock-rotate-left"></i>
+                            <span>Exam History</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="nav-section-title" style="margin-top: 1.75rem;">Account &amp; Portal</div>
+                <ul class="sidebar-menu">
+                    <li>
+                        <a href="{{ url_for('main.index') }}" class="sidebar-item-link">
+                            <i class="fa-solid fa-house"></i>
+                            <span>Portal Home</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('main.about') }}" class="sidebar-item-link">
+                            <i class="fa-solid fa-circle-info"></i>
+                            <span>About System</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('auth.logout') }}" class="sidebar-item-link" style="color: #f87171;">
+                            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                            <span>Log Out</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="sidebar-footer">
+                <div style="font-size: 0.75rem; color: #64748b; text-align: center;">
+                    Academic Term &bull; 2026
+                </div>
+            </div>
+        </aside>
+
+        <!-- Mobile Sidebar Backdrop Overlay -->
+        <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
+
+        <!-- Main Workspace Area -->
+        <div class="main-panel">
+            <header class="panel-topbar">
+                <div style="display: flex; align-items: center;">
+                    <button type="button" class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle navigation menu">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="topbar-breadcrumb">
+                        <a href="{{ url_for('student.dashboard') }}">Student</a>
+                        <i class="fa-solid fa-chevron-right"></i>
+                        <span class="current-page">{% block page_title %}Dashboard{% endblock %}</span>
+                    </div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <a href="{{ url_for('student.exams') }}" class="btn btn-primary btn-sm">
+                        <i class="fa-solid fa-play"></i> Take a Test
+                    </a>
+                </div>
+            </header>
+
+            <div class="panel-body">
+                <!-- Flash Alerts inside Dashboard -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    {% if category == 'success' %}
+                                        <i class="fa-solid fa-circle-check"></i>
+                                    {% elif category == 'danger' %}
+                                        <i class="fa-solid fa-triangle-exclamation"></i>
+                                    {% elif category == 'warning' %}
+                                        <i class="fa-solid fa-circle-exclamation"></i>
+                                    {% else %}
+                                        <i class="fa-solid fa-circle-info"></i>
+                                    {% endif %}
+                                    <span>{{ message }}</span>
+                                </div>
+                                <button type="button" class="alert-close-btn">&times;</button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                {% block student_content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Script -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

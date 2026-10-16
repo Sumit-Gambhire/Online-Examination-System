@@ -1,0 +1,211 @@
+{% extends "admin_layout.html" %}
+
+{% block title %}Faculty Admin Dashboard - Online Examination System{% endblock %}
+{% block page_title %}Administrative Dashboard{% endblock %}
+
+{% block admin_content %}
+<!-- Welcome & Quick Launch Banner -->
+<div style="background: linear-gradient(135deg, #0b1120, #1e293b); border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; padding: 2rem; border-radius: var(--radius-lg); margin-bottom: 2rem; box-shadow: var(--shadow-md); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem;">
+    <div>
+        <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(245, 158, 11, 0.2); color: #fbbf24; padding: 0.25rem 0.75rem; border-radius: var(--radius-full); font-size: 0.8rem; margin-bottom: 0.75rem; font-weight: 600;">
+            <i class="fa-solid fa-shield-halved"></i> Faculty Administrator Active
+        </div>
+        <h1 style="font-size: 1.75rem; font-weight: 800; line-height: 1.2;">Welcome, {{ current_user.full_name }}</h1>
+        <p style="color: #94a3b8; font-size: 0.925rem; margin-top: 0.35rem;">
+            Online assessment administration, question authoring, and student grade records.
+        </p>
+    </div>
+    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+        <a href="{{ url_for('admin.exams') }}" class="btn btn-primary" style="background-color: #f59e0b; border-color: #f59e0b; color: #000;">
+            <i class="fa-solid fa-plus"></i> Create Exam
+        </a>
+        <a href="{{ url_for('admin.questions') }}" class="btn btn-secondary">
+            <i class="fa-solid fa-list-check"></i> Question Bank
+        </a>
+    </div>
+</div>
+
+<!-- Key Performance Indicators -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon primary">
+            <i class="fa-solid fa-users"></i>
+        </div>
+        <div>
+            <div class="stat-value" data-counter="{{ total_students }}">{{ total_students }}</div>
+            <div class="stat-label">Registered Students</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon warning">
+            <i class="fa-solid fa-folder-tree"></i>
+        </div>
+        <div>
+            <div class="stat-value"><span data-counter="{{ published_exams }}">{{ published_exams }}</span> <span style="font-size: 1rem; color: var(--text-muted); font-weight: 500;">/ {{ total_exams }}</span></div>
+            <div class="stat-label">Published Tests</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon success">
+            <i class="fa-solid fa-file-circle-check"></i>
+        </div>
+        <div>
+            <div class="stat-value" data-counter="{{ total_submissions }}">{{ total_submissions }}</div>
+            <div class="stat-label">Total Completed Attempts</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon sky">
+            <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <div>
+            <div class="stat-value">CSRF</div>
+            <div class="stat-label">Form Security Active</div>
+        </div>
+    </div>
+</div>
+
+<!-- Created Exams Table -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title"><i class="fa-solid fa-folder-open text-primary"></i> Created Examinations</h2>
+        <a href="{{ url_for('admin.exams') }}" class="btn btn-outline btn-sm">Manage All Tests &rarr;</a>
+    </div>
+
+    {% if exams %}
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Examination Title</th>
+                        <th>Questions</th>
+                        <th>Duration</th>
+                        <th>Marks</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for exam in exams[:5] %}
+                        <tr>
+                            <td><code>#EX-{{ exam.id }}</code></td>
+                            <td>
+                                <strong style="font-size: 0.95rem; color: var(--navy-900);">{{ exam.title }}</strong>
+                                <div style="font-size: 0.75rem; color: var(--text-muted);">{{ exam.description or 'No description' }}</div>
+                            </td>
+                            <td>
+                                <span class="badge badge-neutral">{{ exam.questions|length }} MCQs</span>
+                            </td>
+                            <td><i class="fa-regular fa-clock"></i> {{ exam.duration_minutes }} mins</td>
+                            <td>{{ exam.total_marks }} pts</td>
+                            <td>
+                                {% if exam.is_published %}
+                                    <span class="badge badge-success">Published</span>
+                                {% else %}
+                                    <span class="badge badge-warning">Draft</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div style="display: flex; gap: 0.4rem;">
+                                    <a href="{{ url_for('admin.exam_questions', exam_id=exam.id) }}" class="btn btn-secondary btn-sm" title="Manage Questions">
+                                        <i class="fa-solid fa-list"></i> Questions
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon"><i class="fa-solid fa-folder-plus"></i></div>
+            <h3 class="empty-state-title">No Examinations Created</h3>
+            <p class="empty-state-desc">Create your first examination to begin authoring questions and administering tests.</p>
+            <a href="{{ url_for('admin.exams') }}" class="btn btn-primary">Create New Examination</a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Recent Submissions Table -->
+<div class="card" style="margin-bottom: 0;">
+    <div class="card-header">
+        <h2 class="card-title"><i class="fa-solid fa-clock-rotate-left"></i> Recent Student Submissions</h2>
+        <span class="badge badge-neutral">{{ recent_results|length }} Latest</span>
+    </div>
+
+    {% if recent_results %}
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Student Candidate</th>
+                        <th>Exam Title</th>
+                        <th>Score Obtained</th>
+                        <th>Grade</th>
+                        <th>Evaluation</th>
+                        <th>Submitted At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for res in recent_results %}
+                        <tr>
+                            <td>
+                                <strong style="color: var(--navy-900);">{{ res.user.full_name }}</strong>
+                                <div style="font-size: 0.75rem; color: var(--text-muted);">{{ res.user.email }}</div>
+                            </td>
+                            <td>{{ res.test.title }}</td>
+                            <td><strong>{{ res.score }}</strong> / {{ res.test.total_marks }}</td>
+                            <td>{{ res.percentage }}%</td>
+                            <td>
+                                {% if res.is_passed %}
+                                    <span class="badge badge-success"><i class="fa-solid fa-check"></i> Passed</span>
+                                {% else %}
+                                    <span class="badge badge-danger"><i class="fa-solid fa-xmark"></i> Failed</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if res.submitted_at %}
+                                    {{ res.submitted_at.strftime('%b %d, %Y - %I:%M %p') }}
+                                {% else %}
+                                    Just now
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if total_pages > 1 %}
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-light);">
+                <span style="font-size: 0.85rem; color: var(--text-muted);">
+                    Page {{ current_page }} of {{ total_pages }} ({{ total_submissions }} total attempts)
+                </span>
+                <div style="display: flex; gap: 0.5rem;">
+                    {% if current_page > 1 %}
+                        <a href="{{ url_for('admin.dashboard', page=current_page-1) }}" class="btn btn-outline btn-sm">
+                            <i class="fa-solid fa-chevron-left"></i> Previous
+                        </a>
+                    {% endif %}
+                    {% if current_page < total_pages %}
+                        <a href="{{ url_for('admin.dashboard', page=current_page+1) }}" class="btn btn-outline btn-sm">
+                            Next <i class="fa-solid fa-chevron-right"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon"><i class="fa-solid fa-inbox"></i></div>
+            <h3 class="empty-state-title">No Submissions Recorded</h3>
+            <p class="empty-state-desc">When students attempt active assessments, their automated scores and response times will appear here.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

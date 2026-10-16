@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Student Login - Online Examination System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="auth-wrapper" style="max-width: 480px;">
+        <div class="card">
+            <div class="auth-header">
+                <div class="brand-icon" style="margin: 0 auto 1rem; width: 3.25rem; height: 3.25rem; font-size: 1.4rem;">
+                    <i class="fa-solid fa-user-graduate"></i>
+                </div>
+                <h1 class="auth-title">Candidate Login</h1>
+                <p class="auth-subtitle">Sign in to take scheduled examinations and view results</p>
+            </div>
+
+            <form method="POST" action="{{ url_for('auth.login') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="form-group">
+                    <label for="identifier" class="form-label">Registered College Email <span style="color: var(--danger-500);">*</span></label>
+                    <input 
+                        type="email" 
+                        id="identifier" 
+                        name="identifier" 
+                        class="form-input" 
+                        placeholder="e.g. student@college.edu" 
+                        required 
+                        autofocus
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="form-label">Password <span style="color: var(--danger-500);">*</span></label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        class="form-input" 
+                        placeholder="Enter your student password" 
+                        required
+                    >
+                </div>
+
+                <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
+                    <label class="form-check">
+                        <input type="checkbox" name="remember" value="1">
+                        <span>Remember my session</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <i class="fa-solid fa-right-to-bracket"></i> Login to Portal
+                </button>
+            </form>
+
+            <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center; font-size: 0.875rem;">
+                <span style="color: var(--text-muted);">New candidate? <a href="{{ url_for('auth.register') }}" style="font-weight: 600;">Register here</a></span>
+                <a href="{{ url_for('auth.admin_login') }}" style="color: var(--warning-600); font-weight: 600;">
+                    <i class="fa-solid fa-shield-halved"></i> Faculty Login &rarr;
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

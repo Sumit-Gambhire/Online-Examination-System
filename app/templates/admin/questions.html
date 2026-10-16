@@ -1,0 +1,193 @@
+{% extends "admin_layout.html" %}
+
+{% block title %}Question Management - Faculty Admin Portal{% endblock %}
+{% block page_title %}Question Bank Authoring{% endblock %}
+
+{% block admin_content %}
+<!-- Exam Selector Header Card -->
+<div class="card" style="margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--navy-900);">Question Management</h2>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.25rem;">
+                Select an examination below to manage its question repository.
+            </p>
+        </div>
+
+        {% if exams %}
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <label for="exam-switcher" style="font-size: 0.875rem; font-weight: 600; color: var(--navy-700);">Active Exam:</label>
+                <select id="exam-switcher" class="form-select" style="min-width: 260px;" onchange="window.location.href='/admin/exam/' + this.value + '/questions'">
+                    {% for ex in exams %}
+                        <option value="{{ ex.id }}" {% if current_exam and current_exam.id == ex.id %}selected{% endif %}>
+                            {{ ex.title }} ({{ ex.questions|length }} Qs)
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if current_exam %}
+    <!-- Add New Question Card -->
+    <div class="card" style="border-top: 4px solid var(--indigo-600); margin-bottom: 2.5rem;">
+        <div class="card-header">
+            <div>
+                <h3 class="card-title"><i class="fa-solid fa-plus-circle text-primary"></i> Add MCQ Question</h3>
+                <div style="font-size: 0.825rem; color: var(--text-muted); margin-top: 0.2rem;">
+                    Adding to: <strong>{{ current_exam.title }}</strong>
+                </div>
+            </div>
+            <span class="badge badge-primary">Multiple Choice Format</span>
+        </div>
+
+        <form method="POST" action="{{ url_for('admin.exam_questions', exam_id=current_exam.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group">
+                <label for="question_text" class="form-label">Question Text / Statement <span style="color: var(--danger-500);">*</span></label>
+                <textarea 
+                    id="question_text" 
+                    name="question_text" 
+                    class="form-textarea" 
+                    rows="3" 
+                    placeholder="Type the question prompt here..." 
+                    required
+                ></textarea>
+            </div>
+
+            <div class="form-group" style="max-width: 220px;">
+                <label for="marks" class="form-label">Assigned Marks <span style="color: var(--danger-500);">*</span></label>
+                <input 
+                    type="number" 
+                    id="marks" 
+                    name="marks" 
+                    class="form-input" 
+                    value="5" 
+                    min="1" 
+                    max="50" 
+                    required
+                >
+            </div>
+
+            <div style="margin-top: 1.5rem; margin-bottom: 1.25rem;">
+                <label class="form-label" style="margin-bottom: 0.75rem;">
+                    Answer Options &amp; Correct Key Specification <span style="color: var(--danger-500);">*</span>
+                </label>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">
+                    Select the radio button next to the option that represents the correct answer key.
+                </p>
+
+                <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+                    <!-- Option A -->
+                    <div style="display: flex; align-items: center; gap: 0.75rem; background: var(--bg-hover); padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-light);">
+                        <input type="radio" name="correct_option" value="A" required id="correct-A" style="width: 1.25rem; height: 1.25rem; accent-color: var(--success-600); cursor: pointer;" title="Mark Option A as correct">
+                        <label for="correct-A" style="font-weight: 700; width: 1.5rem; cursor: pointer;">A.</label>
+                        <input type="text" name="option_a" class="form-input" placeholder="Option A statement..." required style="background: #ffffff;">
+                    </div>
+
+                    <!-- Option B -->
+                    <div style="display: flex; align-items: center; gap: 0.75rem; background: var(--bg-hover); padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-light);">
+                        <input type="radio" name="correct_option" value="B" required id="correct-B" style="width: 1.25rem; height: 1.25rem; accent-color: var(--success-600); cursor: pointer;" title="Mark Option B as correct">
+                        <label for="correct-B" style="font-weight: 700; width: 1.5rem; cursor: pointer;">B.</label>
+                        <input type="text" name="option_b" class="form-input" placeholder="Option B statement..." required style="background: #ffffff;">
+                    </div>
+
+                    <!-- Option C -->
+                    <div style="display: flex; align-items: center; gap: 0.75rem; background: var(--bg-hover); padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-light);">
+                        <input type="radio" name="correct_option" value="C" required id="correct-C" style="width: 1.25rem; height: 1.25rem; accent-color: var(--success-600); cursor: pointer;" title="Mark Option C as correct">
+                        <label for="correct-C" style="font-weight: 700; width: 1.5rem; cursor: pointer;">C.</label>
+                        <input type="text" name="option_c" class="form-input" placeholder="Option C statement..." required style="background: #ffffff;">
+                    </div>
+
+                    <!-- Option D -->
+                    <div style="display: flex; align-items: center; gap: 0.75rem; background: var(--bg-hover); padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-light);">
+                        <input type="radio" name="correct_option" value="D" required id="correct-D" style="width: 1.25rem; height: 1.25rem; accent-color: var(--success-600); cursor: pointer;" title="Mark Option D as correct">
+                        <label for="correct-D" style="font-weight: 700; width: 1.5rem; cursor: pointer;">D.</label>
+                        <input type="text" name="option_d" class="form-input" placeholder="Option D statement..." required style="background: #ffffff;">
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-plus"></i> Save Question to Bank
+            </button>
+        </form>
+    </div>
+
+    <!-- Existing Questions in this Exam -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">
+                <i class="fa-solid fa-list-check text-primary"></i> 
+                Configured Questions in "{{ current_exam.title }}"
+            </h3>
+            <span class="badge badge-info">{{ questions|length }} Questions</span>
+        </div>
+
+        {% if questions %}
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                {% for q in questions %}
+                    <div style="background-color: var(--bg-app); border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 1.5rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                            <div>
+                                <span class="badge badge-primary">Q{{ loop.index }}</span>
+                                <span class="badge badge-neutral">{{ q.marks }} mark{% if q.marks > 1 %}s{% endif %}</span>
+                            </div>
+
+                            <div style="display: flex; gap: 0.4rem; align-items: center;">
+                                <a href="{{ url_for('admin.edit_question', question_id=q.id) }}" class="btn btn-outline btn-sm" title="Edit Question">
+                                    <i class="fa-solid fa-pen-to-square"></i> Edit
+                                </a>
+
+                                <form method="POST" action="{{ url_for('admin.delete_question', question_id=q.id) }}" onsubmit="return confirm('CONFIRM DELETION:\nAre you sure you want to permanently remove this question from the examination?');" style="display: inline;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-danger btn-sm" title="Delete Question">
+                                        <i class="fa-solid fa-trash"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div style="font-size: 1.05rem; font-weight: 600; color: var(--navy-900); margin-bottom: 1rem;">
+                            {{ q.question_text }}
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0.5rem;">
+                            {% for opt_key, opt_text in [('A', q.option_a), ('B', q.option_b), ('C', q.option_c), ('D', q.option_d)] %}
+                                <div style="padding: 0.6rem 0.85rem; border-radius: var(--radius-sm); font-size: 0.9rem; display: flex; align-items: center; justify-content: space-between; {% if q.correct_option == opt_key %}background-color: var(--success-50); border: 1.5px solid var(--success-500); color: var(--success-600); font-weight: 600;{% else %}background-color: #ffffff; border: 1px solid var(--border-light); color: var(--navy-800);{% endif %}">
+                                    <span>
+                                        <strong>{{ opt_key }}.</strong>
+                                        {{ opt_text }}
+                                    </span>
+                                    {% if q.correct_option == opt_key %}
+                                        <span class="badge badge-success"><i class="fa-solid fa-check"></i> Correct Key</span>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon"><i class="fa-solid fa-clipboard-question"></i></div>
+                <h4 class="empty-state-title">No Questions Added Yet</h4>
+                <p class="empty-state-desc">This examination doesn't have any questions configured. Use the form above to add your first multiple choice question.</p>
+            </div>
+        {% endif %}
+    </div>
+
+{% else %}
+    <div class="card">
+        <div class="empty-state">
+            <div class="empty-state-icon"><i class="fa-solid fa-folder-xmark"></i></div>
+            <h3 class="empty-state-title">No Examinations Found</h3>
+            <p class="empty-state-desc">You need to create at least one examination before authoring questions.</p>
+            <a href="{{ url_for('admin.exams') }}" class="btn btn-primary">
+                <i class="fa-solid fa-plus"></i> Create Examination First
+            </a>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

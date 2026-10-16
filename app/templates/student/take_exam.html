@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Exam in Progress: {{ exam.title }} - Online Examination System</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Custom Application CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body style="background-color: #f1f5f9;">
+
+    <!-- Dedicated Examination Top Bar -->
+    <header class="exam-header-bar">
+        <div class="exam-title-badge">
+            <span class="brand-icon"><i class="fa-solid fa-graduation-cap"></i></span>
+            <div>
+                <strong style="font-size: 1.1rem; color: #fff;">{{ exam.title }}</strong>
+                <div style="font-size: 0.75rem; color: #94a3b8;">
+                    Candidate: <strong>{{ current_user.full_name }}</strong> ({{ current_user.email }})
+                </div>
+            </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap;">
+            <!-- Real-time Exam Progress Bar -->
+            <div class="exam-progress-wrapper" title="Live exam completion progress">
+                <i class="fa-solid fa-list-check" style="font-size: 0.8rem; color: #38bdf8;"></i>
+                <div class="exam-progress-bar-bg">
+                    <div id="exam-progress-fill" class="exam-progress-fill" style="width: 0%;"></div>
+                </div>
+                <span id="exam-progress-text" class="exam-progress-text">0% Done</span>
+            </div>
+
+            <!-- Real-time Cloud Autosave Status Indicator -->
+            <span id="autosave-indicator" class="autosave-pill saved" title="All answers are synchronized securely with the server">
+                <i class="fa-solid fa-cloud-check"></i> <span id="autosave-text">Saved</span>
+            </span>
+
+            <!-- Real-time Server Countdown Timer -->
+            <div class="timer-box" title="Server-synchronized time remaining before automatic submission">
+                <i class="fa-regular fa-clock" style="color: #60a5fa;"></i>
+                <span>Time Left: </span>
+                <span id="exam-countdown-timer" data-duration-seconds="{{ remaining_seconds }}">
+                    --:--
+                </span>
+            </div>
+
+            <!-- Header Submit Button (Triggers Confirmation Modal) -->
+            <button type="button" id="btn-header-submit" class="btn btn-primary btn-sm" style="background-color: var(--success-600); border-color: var(--success-600);">
+                <i class="fa-solid fa-paper-plane"></i> Submit Exam
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Examination Grid Area -->
+    <main class="container">
+        <div class="exam-layout-grid">
+            <!-- Questions Stream -->
+            <div>
+                <form id="exam-submission-form" method="POST" action="{{ url_for('student.submit_attempt', attempt_id=attempt.id) }}" data-attempt-id="{{ attempt.id }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    {% for q in questions %}
+                        {% set cur_saved = saved_answers.get(q.id, {}) %}
+                        {% set is_q_answered = (cur_saved.get('selected') is defined and cur_saved.get('selected') != '') %}
+                        {% set is_q_reviewed = cur_saved.get('is_review', False) %}
+
+                        <div class="question-block" id="question-anchor-{{ loop.index }}" data-question-index="{{ loop.index }}" data-question-id="{{ q.id }}">
+                            <div class="question-meta">
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <span class="badge badge-primary">Question {{ loop.index }} of {{ questions|length }}</span>
+                                    <span class="badge badge-neutral">{{ q.marks }} mark{% if q.marks > 1 %}s{% endif %}</span>
+                                </div>
+
+                                <div class="question-top-actions">
+                                    <!-- Mark for Review Toggle -->
+                                    <label class="btn-review-toggle {% if is_q_reviewed %}is-active{% endif %}" id="review-lbl-{{ q.id }}">
+                                        <input type="checkbox" 
+                                               name="review_{{ q.id }}" 
+                                               id="review-toggle-{{ q.id }}" 
+                                               class="mark-review-toggle" 
+                                               data-question-id="{{ q.id }}" 
+                                               value="1" 
+                                               {% if is_q_reviewed %}checked{% endif %}>
+                                        <i class="fa-solid fa-bookmark"></i>
+                                        <span>Mark for Review</span>
+                                    </label>
+
+                                    <!-- Clear Choice Button -->
+                                    <button type="button" class="btn-clear-choice" data-question-id="{{ q.id }}" title="Clear selected option for this question">
+                                        <i class="fa-regular fa-circle-xmark"></i> Clear
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="question-text-box">
+                                {{ q.question_text }}
+                            </div>
+
+                            <div class="mcq-options-group">
+                                <label class="mcq-option-label {% if cur_saved.get('selected') == 'A' %}is-selected{% endif %}" for="opt-{{ q.id }}-A">
+                                    <input type="radio" 
+                                           name="question_{{ q.id }}" 
+                                           id="opt-{{ q.id }}-A" 
+                                           value="A" 
+                                           data-question-id="{{ q.id }}"
+                                           {% if cur_saved.get('selected') == 'A' %}checked{% endif %}>
+                                    <span class="option-letter-badge">A</span>
+                                    <span class="option-text-span">{{ q.option_a }}</span>
+                                </label>
+
+                                <label class="mcq-option-label {% if cur_saved.get('selected') == 'B' %}is-selected{% endif %}" for="opt-{{ q.id }}-B">
+                                    <input type="radio" 
+                                           name="question_{{ q.id }}" 
+                                           id="opt-{{ q.id }}-B" 
+                                           value="B" 
+                                           data-question-id="{{ q.id }}"
+                                           {% if cur_saved.get('selected') == 'B' %}checked{% endif %}>
+                                    <span class="option-letter-badge">B</span>
+                                    <span class="option-text-span">{{ q.option_b }}</span>
+                                </label>
+
+                                <label class="mcq-option-label {% if cur_saved.get('selected') == 'C' %}is-selected{% endif %}" for="opt-{{ q.id }}-C">
+                                    <input type="radio" 
+                                           name="question_{{ q.id }}" 
+                                           id="opt-{{ q.id }}-C" 
+                                           value="C" 
+                                           data-question-id="{{ q.id }}"
+                                           {% if cur_saved.get('selected') == 'C' %}checked{% endif %}>
+                                    <span class="option-letter-badge">C</span>
+                                    <span class="option-text-span">{{ q.option_c }}</span>
+                                </label>
+
+                                <label class="mcq-option-label {% if cur_saved.get('selected') == 'D' %}is-selected{% endif %}" for="opt-{{ q.id }}-D">
+                                    <input type="radio" 
+                                           name="question_{{ q.id }}" 
+                                           id="opt-{{ q.id }}-D" 
+                                           value="D" 
+                                           data-question-id="{{ q.id }}"
+                                           {% if cur_saved.get('selected') == 'D' %}checked{% endif %}>
+                                    <span class="option-letter-badge">D</span>
+                                    <span class="option-text-span">{{ q.option_d }}</span>
+                                </label>
+                            </div>
+
+                            <!-- In-Question Navigation Controls -->
+                            <div class="question-nav-controls">
+                                <div>
+                                    {% if not loop.first %}
+                                        <button type="button" class="btn btn-secondary btn-sm nav-prev-btn" data-target-index="{{ loop.index - 1 }}">
+                                            <i class="fa-solid fa-arrow-left"></i> Previous Question
+                                        </button>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    {% if not loop.last %}
+                                        <button type="button" class="btn btn-secondary btn-sm nav-next-btn" data-target-index="{{ loop.index + 1 }}">
+                                            Next Question <i class="fa-solid fa-arrow-right"></i>
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+
+                    <!-- Bottom Submission Bar -->
+                    <div style="background: #ffffff; padding: 1.5rem; border-radius: var(--radius-lg); border: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-sm); margin-bottom: 3rem;">
+                        <div>
+                            <span style="font-weight: 700; color: var(--navy-900); font-size: 1.05rem;">Finished answering?</span>
+                            <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.15rem;">
+                                Please review your question palette to ensure all answers are marked.
+                            </div>
+                        </div>
+                        <button type="button" id="btn-bottom-submit" class="btn btn-primary btn-lg" style="background-color: var(--success-600); border-color: var(--success-600); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);">
+                            <i class="fa-solid fa-circle-check"></i> Finalize &amp; Submit Exam
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Sticky Question Palette & Summary Sidebar -->
+            <div>
+                <div class="palette-card">
+                    <h3 style="font-size: 1rem; font-weight: 700; color: var(--navy-900); display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fa-solid fa-table-cells-large text-primary"></i> Question Palette
+                    </h3>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">
+                        Click any number to jump directly to that question.
+                    </p>
+
+                    <div class="palette-grid">
+                        {% for q in questions %}
+                            {% set cur_saved = saved_answers.get(q.id, {}) %}
+                            {% set is_ans = (cur_saved.get('selected') is defined and cur_saved.get('selected') != '') %}
+                            {% set is_rev = cur_saved.get('is_review', False) %}
+                            
+                            {% set p_class = '' %}
+                            {% if is_ans and is_rev %}
+                                {% set p_class = 'palette-answered-review' %}
+                            {% elif is_ans %}
+                                {% set p_class = 'palette-answered' %}
+                            {% elif is_rev %}
+                                {% set p_class = 'palette-review' %}
+                            {% endif %}
+
+                            <button type="button" 
+                                    class="palette-btn {{ p_class }}" 
+                                    data-target-index="{{ loop.index }}" 
+                                    data-question-id="{{ q.id }}"
+                                    id="palette-btn-{{ q.id }}"
+                                    title="Jump to question {{ loop.index }}">
+                                {{ loop.index }}
+                            </button>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Palette Legend -->
+                    <div style="padding-top: 1rem; border-top: 1px solid var(--border-light); font-size: 0.8rem; display: flex; flex-direction: column; gap: 0.6rem;">
+                        <div style="display: flex; align-items: center; gap: 0.6rem;">
+                            <span style="width: 1.1rem; height: 1.1rem; background-color: var(--success-500); border-radius: 3px; display: inline-block;"></span>
+                            <span style="color: var(--navy-800); font-weight: 500;">Answered</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.6rem;">
+                            <span style="width: 1.1rem; height: 1.1rem; background-color: #f59e0b; border-radius: 3px; display: inline-block;"></span>
+                            <span style="color: var(--navy-800); font-weight: 500;">Marked for Review</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.6rem;">
+                            <span style="width: 1.1rem; height: 1.1rem; background: linear-gradient(135deg, #7c3aed 0%, #10b981 100%); border: 1.5px solid #059669; border-radius: 3px; display: inline-block;"></span>
+                            <span style="color: var(--navy-800); font-weight: 500;">Answered &amp; Marked for Review</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.6rem;">
+                            <span style="width: 1.1rem; height: 1.1rem; background-color: #f8fafc; border: 1px solid var(--border-light); border-radius: 3px; display: inline-block;"></span>
+                            <span style="color: var(--navy-800); font-weight: 500;">Not Attempted</span>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border-light); font-size: 0.8rem; color: var(--text-muted); line-height: 1.5;">
+                        <i class="fa-solid fa-shield-halved text-primary"></i> Real-time autosave active. Your session is protected across accidental reloads.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Interactive Submission Confirmation Modal -->
+    <div id="exam-submit-modal" class="exam-modal-overlay">
+        <div class="exam-modal-content">
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                <div style="width: 2.5rem; height: 2.5rem; border-radius: 50%; background: #ecfdf5; color: var(--success-600); display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+                    <i class="fa-solid fa-circle-question"></i>
+                </div>
+                <div>
+                    <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--navy-900); margin: 0;">Submit Examination?</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Verify your attempt summary before final submission.</p>
+                </div>
+            </div>
+
+            <!-- Summary Stats Grid -->
+            <div class="exam-modal-grid">
+                <div class="modal-stat-card" style="background-color: #ecfdf5; color: #065f46;">
+                    <div class="modal-stat-num" id="modal-answered-count">0</div>
+                    <div class="modal-stat-lbl">Answered</div>
+                </div>
+                <div class="modal-stat-card" style="background-color: #fef3c7; color: #92400e;">
+                    <div class="modal-stat-num" id="modal-review-count">0</div>
+                    <div class="modal-stat-lbl">Marked for Review</div>
+                </div>
+                <div class="modal-stat-card" style="background-color: #f1f5f9; color: var(--navy-800);">
+                    <div class="modal-stat-num" id="modal-unanswered-count">0</div>
+                    <div class="modal-stat-lbl">Unanswered</div>
+                </div>
+            </div>
+
+            <div id="modal-warning-box" style="display: none; background: #fffbeb; border: 1px solid #fde68a; border-radius: var(--radius-md); padding: 0.75rem 1rem; margin-bottom: 1.25rem; font-size: 0.85rem; color: #b45309;">
+                <i class="fa-solid fa-triangle-exclamation"></i> <span id="modal-warning-text">You have unanswered questions.</span>
+            </div>
+
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+                Once confirmed, your answers will be permanently evaluated by the server. You will not be able to change your choices.
+            </p>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+                <button type="button" id="btn-modal-cancel" class="btn btn-secondary">
+                    <i class="fa-solid fa-arrow-left"></i> Return to Exam
+                </button>
+                <button type="button" id="btn-modal-confirm" class="btn btn-primary" style="background-color: var(--success-600); border-color: var(--success-600);">
+                    <i class="fa-solid fa-circle-check"></i> Yes, Submit Now
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom JavaScript Engine -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

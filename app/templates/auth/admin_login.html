@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Faculty Admin Login - Online Examination System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="auth-wrapper" style="max-width: 490px;">
+        <div class="card" style="border-top: 4px solid var(--warning-500);">
+            <div class="auth-header">
+                <div class="brand-icon" style="margin: 0 auto 1rem; width: 3.25rem; height: 3.25rem; font-size: 1.4rem; background: linear-gradient(135deg, #f59e0b, #d97706);">
+                    <i class="fa-solid fa-user-shield"></i>
+                </div>
+                <h1 class="auth-title">Faculty Administrator Login</h1>
+                <p class="auth-subtitle">Restricted access for academic test administrators</p>
+            </div>
+
+            {% if not has_admin %}
+                <div style="background-color: var(--warning-50); border: 1.5px dashed var(--warning-500); padding: 1.25rem; border-radius: var(--radius-md); margin-bottom: 1.5rem;">
+                    <div style="display: flex; gap: 0.75rem; align-items: flex-start;">
+                        <i class="fa-solid fa-triangle-exclamation" style="color: var(--warning-600); margin-top: 0.2rem; font-size: 1.2rem;"></i>
+                        <div>
+                            <strong style="color: #92400e; font-size: 0.95rem;">First-Time Setup Required</strong>
+                            <p style="color: #78350f; font-size: 0.85rem; margin-top: 0.25rem; line-height: 1.5;">
+                                In accordance with security standards, no publicly known administrator accounts are pre-packaged.
+                            </p>
+                            <p style="color: #78350f; font-size: 0.85rem; margin-top: 0.35rem;">
+                                Run the following secure CLI command in your project terminal:
+                            </p>
+                            <code style="display: block; background: #ffffff; padding: 0.4rem 0.65rem; border-radius: 4px; margin-top: 0.4rem; font-size: 0.825rem; border: 1px solid var(--border-light); color: var(--navy-900);">
+                                flask create-admin
+                            </code>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <form method="POST" action="{{ url_for('auth.admin_login') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="form-group">
+                    <label for="identifier" class="form-label">Administrator College Email <span style="color: var(--danger-500);">*</span></label>
+                    <input 
+                        type="email" 
+                        id="identifier" 
+                        name="identifier" 
+                        class="form-input" 
+                        placeholder="e.g. admin@college.edu" 
+                        required 
+                        autofocus
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="form-label">Administrator Password <span style="color: var(--danger-500);">*</span></label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        class="form-input" 
+                        placeholder="Enter secure password" 
+                        required
+                    >
+                </div>
+
+                <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
+                    <label class="form-check">
+                        <input type="checkbox" name="remember" value="1">
+                        <span>Remember session on this device</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; background-color: var(--navy-900); border-color: var(--navy-900);">
+                    <i class="fa-solid fa-shield-halved"></i> Authenticate Administrator
+                </button>
+            </form>
+
+            <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border-light); text-align: center; font-size: 0.875rem;">
+                <span style="color: var(--text-muted);">Are you a student candidate? </span>
+                <a href="{{ url_for('auth.login') }}" style="font-weight: 600; color: var(--indigo-600);">
+                    Switch to Student Portal &rarr;
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

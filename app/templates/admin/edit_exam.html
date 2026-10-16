@@ -1,0 +1,112 @@
+{% extends "admin_layout.html" %}
+
+{% block title %}Edit Examination #EX-{{ exam.id }} - Faculty Portal{% endblock %}
+{% block page_title %}Edit Examination{% endblock %}
+
+{% block admin_content %}
+<div style="max-width: 800px; margin: 0 auto;">
+    <div class="card" style="border-top: 4px solid var(--indigo-600);">
+        <div class="card-header">
+            <div>
+                <h2 class="card-title"><i class="fa-solid fa-pen-to-square text-primary"></i> Edit Examination Details</h2>
+                <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem;">
+                    Modify parameters for examination <code>#EX-{{ exam.id }}</code>
+                </div>
+            </div>
+            <span class="badge {% if exam.is_published %}badge-success{% else %}badge-warning{% endif %}">
+                {{ 'Published' if exam.is_published else 'Draft' }}
+            </span>
+        </div>
+
+        <form method="POST" action="{{ url_for('admin.edit_exam', exam_id=exam.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="form-group">
+                <label for="title" class="form-label">Examination Title <span style="color: var(--danger-500);">*</span></label>
+                <input 
+                    type="text" 
+                    id="title" 
+                    name="title" 
+                    class="form-input" 
+                    value="{{ exam.title }}" 
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="description" class="form-label">Description &amp; Syllabus Guidelines</label>
+                <textarea 
+                    id="description" 
+                    name="description" 
+                    class="form-textarea" 
+                    rows="3"
+                >{{ exam.description or '' }}</textarea>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.25rem;">
+                <div>
+                    <label for="duration_minutes" class="form-label">Duration (Minutes) <span style="color: var(--danger-500);">*</span></label>
+                    <input 
+                        type="number" 
+                        id="duration_minutes" 
+                        name="duration_minutes" 
+                        class="form-input" 
+                        value="{{ exam.duration_minutes }}" 
+                        min="1" 
+                        max="360" 
+                        required
+                    >
+                    <div class="form-hint">Must be between 1 and 360 minutes.</div>
+                </div>
+
+                <div>
+                    <label for="total_marks" class="form-label">Total Maximum Marks <span style="color: var(--danger-500);">*</span></label>
+                    <input 
+                        type="number" 
+                        id="total_marks" 
+                        name="total_marks" 
+                        class="form-input" 
+                        value="{{ exam.total_marks }}" 
+                        min="1" 
+                        max="1000" 
+                        required
+                    >
+                    <div class="form-hint">Overall exam point scale.</div>
+                </div>
+
+                <div>
+                    <label for="passing_percentage" class="form-label">Pass Benchmark (%) <span style="font-size: 0.75rem; color: var(--text-muted);">(Optional)</span></label>
+                    <input 
+                        type="number" 
+                        id="passing_percentage" 
+                        name="passing_percentage" 
+                        class="form-input" 
+                        value="{{ exam.passing_percentage if exam.passing_percentage is not none else '' }}" 
+                        placeholder="Leave blank for no pass/fail" 
+                        min="0" 
+                        max="100" 
+                        step="0.5"
+                    >
+                    <div class="form-hint">If empty, no pass/fail label shown.</div>
+                </div>
+            </div>
+
+            <div class="form-group" style="background: var(--bg-hover); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-light);">
+                <label class="form-check">
+                    <input type="checkbox" name="is_published" value="1" {% if exam.is_published %}checked{% endif %}>
+                    <span><strong>Active &amp; Published:</strong> Students can see and attempt this test when published.</span>
+                </label>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem;">
+                <a href="{{ url_for('admin.exams') }}" class="btn btn-secondary">
+                    <i class="fa-solid fa-arrow-left"></i> Cancel &amp; Back
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-floppy-disk"></i> Save Examination Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

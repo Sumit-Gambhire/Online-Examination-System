@@ -1,0 +1,93 @@
+{% extends "student_layout.html" %}
+
+{% block title %}Available Examinations - Online Examination System{% endblock %}
+{% block page_title %}Available Examinations{% endblock %}
+
+{% block student_content %}
+<div class="card" style="margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--navy-900);">Available Examinations Catalog</h2>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.25rem;">
+                Browse all scheduled assessments configured by your faculty.
+            </p>
+        </div>
+
+        <div style="position: relative; width: 100%; max-width: 300px;">
+            <input 
+                type="text" 
+                class="form-input" 
+                placeholder="Search examinations..." 
+                data-table-search="#available-exams-table"
+                style="padding-left: 2.25rem;"
+            >
+            <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: var(--text-light);"></i>
+        </div>
+    </div>
+</div>
+
+{% if available_exams %}
+    <div class="card">
+        <div class="table-responsive">
+            <table class="data-table" id="available-exams-table">
+                <thead>
+                    <tr>
+                        <th>Examination Title &amp; Scope</th>
+                        <th>Duration</th>
+                        <th>Total Questions</th>
+                        <th>Total Marks</th>
+                        <th>Your Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for exam in available_exams %}
+                        <tr>
+                            <td>
+                                <strong style="font-size: 1rem; color: var(--navy-900);">{{ exam.title }}</strong>
+                                <div style="font-size: 0.825rem; color: var(--text-muted); margin-top: 0.25rem;">
+                                    {{ exam.description or 'Standard college curriculum assessment.' }}
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge badge-neutral">
+                                    <i class="fa-regular fa-clock"></i> {{ exam.duration_minutes }} Mins
+                                </span>
+                            </td>
+                            <td>
+                                <strong>{{ exam.questions|length }}</strong> Questions
+                            </td>
+                            <td>
+                                <div><strong style="color: var(--indigo-700); font-size: 1.05rem;">{{ exam.total_marks }}</strong> pts</div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted);">Pass: {{ (exam.total_marks * 0.4) | round | int }} pts (40%)</div>
+                            </td>
+                            <td>
+                                {% if exam.id in taken_exam_ids %}
+                                    <span class="badge badge-info"><i class="fa-solid fa-rotate-left"></i> Previously Taken</span>
+                                {% else %}
+                                    <span class="badge badge-success"><i class="fa-solid fa-circle"></i> Unattempted</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <a href="{{ url_for('student.instructions', exam_id=exam.id) }}" class="btn btn-primary btn-sm">
+                                        <i class="fa-solid fa-arrow-right"></i> Instructions &amp; Start
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% else %}
+    <div class="card">
+        <div class="empty-state">
+            <div class="empty-state-icon"><i class="fa-solid fa-calendar-xmark"></i></div>
+            <h3 class="empty-state-title">No Active Examinations Found</h3>
+            <p class="empty-state-desc">There are no examinations published at this moment. Contact your course instructor if you were scheduled for a test.</p>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

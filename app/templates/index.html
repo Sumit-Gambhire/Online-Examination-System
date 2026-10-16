@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Online Examination System - Modern Academic Assessment Portal{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Hero Section -->
+    <section class="hero" style="padding-top: 3rem; padding-bottom: 2.5rem;">
+        <div class="hero-pill">
+            <i class="fa-solid fa-graduation-cap"></i> Enterprise-Grade College Assessment System
+        </div>
+        <h1 class="hero-title">
+            Empower Academic Success with <br>
+            <span class="hero-gradient-text">Automated Digital Examinations</span>
+        </h1>
+        <p class="hero-subtitle">
+            A state-of-the-art college testing portal powered by Python Flask and SQLite. 
+            Students experience real-time countdown exams with instant scoring, while faculty manage tests and question banks effortlessly.
+        </p>
+
+        <div class="hero-actions">
+            {% if current_user.is_authenticated %}
+                {% if current_user.is_admin %}
+                    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-primary btn-lg">
+                        <i class="fa-solid fa-gauge-high"></i> Open Faculty Dashboard
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('student.dashboard') }}" class="btn btn-primary btn-lg">
+                        <i class="fa-solid fa-laptop-code"></i> Open Student Portal
+                    </a>
+                {% endif %}
+            {% else %}
+                <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg">
+                    <i class="fa-solid fa-user-graduate"></i> Student Login
+                </a>
+                <a href="{{ url_for('auth.admin_login') }}" class="btn btn-secondary btn-lg">
+                    <i class="fa-solid fa-user-tie"></i> Faculty Admin
+                </a>
+                <a href="{{ url_for('auth.register') }}" class="btn btn-outline btn-lg">
+                    <i class="fa-solid fa-user-plus"></i> Register
+                </a>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Quick Role Pathways -->
+    <section style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
+        <div class="card" style="border-top: 4px solid var(--indigo-600); margin-bottom: 0;">
+            <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                <div class="stat-icon primary">
+                    <i class="fa-solid fa-user-graduate"></i>
+                </div>
+                <div>
+                    <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--navy-900); margin-bottom: 0.35rem;">For Students</h3>
+                    <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">
+                        View enrolled courses, take timed computer-based assessments with live countdown timers, and review instant score breakdowns.
+                    </p>
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-outline btn-sm">
+                        <span>Student Sign In</span> <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="border-top: 4px solid var(--warning-500); margin-bottom: 0;">
+            <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                <div class="stat-icon warning">
+                    <i class="fa-solid fa-chalkboard-user"></i>
+                </div>
+                <div>
+                    <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--navy-900); margin-bottom: 0.35rem;">For Faculty &amp; Admins</h3>
+                    <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">
+                        Design new examinations, formulate objective question banks with custom marks, publish tests, and inspect student performance analytics.
+                    </p>
+                    <a href="{{ url_for('auth.admin_login') }}" class="btn btn-outline btn-sm">
+                        <span>Faculty Portal</span> <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Feature Showcase Grid -->
+    <section class="features-grid" style="margin-top: 3rem;">
+        <div class="feature-card">
+            <div class="feature-icon-wrapper">
+                <i class="fa-solid fa-stopwatch"></i>
+            </div>
+            <h3 class="feature-title">Timed Countdown Testing</h3>
+            <p class="feature-desc">
+                High-precision JavaScript countdown timer synchronizes with each assessment and auto-submits answers when time elapses.
+            </p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon-wrapper">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <h3 class="feature-title">Automated Instant Grading</h3>
+            <p class="feature-desc">
+                Our Python evaluation engine automatically scores objective questions against master answer keys, computing percentages and pass/fail rankings instantly.
+            </p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon-wrapper">
+                <i class="fa-solid fa-list-ol"></i>
+            </div>
+            <h3 class="feature-title">Interactive Question Palette</h3>
+            <p class="feature-desc">
+                Students can navigate freely between questions, track answered versus unanswered items, and jump directly to any question.
+            </p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon-wrapper">
+                <i class="fa-solid fa-database"></i>
+            </div>
+            <h3 class="feature-title">Zero-Configuration SQLite</h3>
+            <p class="feature-desc">
+                Complete relational persistence out of the box with zero external database servers, API keys, or cloud infrastructure needed.
+            </p>
+        </div>
+    </section>
+</div>
+{% endblock %}

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Online Examination System{% endblock %}</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Custom Application CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- Main Navigation Bar -->
+    <header class="site-header">
+        <div class="container">
+            <nav class="navbar">
+                <a href="{{ url_for('main.index') }}" class="brand-logo">
+                    <span class="brand-icon"><i class="fa-solid fa-graduation-cap"></i></span>
+                    <span>ExamPortal</span>
+                    <span class="brand-badge">College Mini Project</span>
+                </a>
+
+                <ul class="nav-links">
+                    <li><a href="{{ url_for('main.index') }}" class="nav-link"><i class="fa-solid fa-house"></i> Home</a></li>
+                    <li><a href="{{ url_for('main.about') }}" class="nav-link"><i class="fa-solid fa-circle-info"></i> About</a></li>
+
+                    {% if current_user.is_authenticated %}
+                        {% if current_user.is_admin %}
+                            <li><a href="{{ url_for('admin.dashboard') }}" class="nav-link"><i class="fa-solid fa-gauge-high"></i> Admin Dashboard</a></li>
+                        {% else %}
+                            <li><a href="{{ url_for('student.dashboard') }}" class="nav-link"><i class="fa-solid fa-laptop-code"></i> Student Portal</a></li>
+                        {% endif %}
+
+                        <li>
+                            <span class="user-tag">
+                                <i class="fa-solid fa-user-circle"></i>
+                                <span>{{ current_user.email }}</span>
+                                <span class="user-role-badge {% if current_user.is_admin %}role-admin{% else %}role-student{% endif %}">
+                                    {{ current_user.role }}
+                                </span>
+                            </span>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('auth.logout') }}" class="btn btn-outline btn-sm">
+                                <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+                            </a>
+                        </li>
+                    {% else %}
+                        <li><a href="{{ url_for('auth.login') }}" class="btn btn-outline btn-sm"><i class="fa-solid fa-right-to-bracket"></i> Login</a></li>
+                        <li><a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-sm"><i class="fa-solid fa-user-plus"></i> Register</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Flash Messages Component -->
+    <div class="container flash-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            {% if category == 'success' %}
+                                <i class="fa-solid fa-circle-check"></i>
+                            {% elif category == 'danger' %}
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                            {% elif category == 'warning' %}
+                                <i class="fa-solid fa-circle-exclamation"></i>
+                            {% else %}
+                                <i class="fa-solid fa-circle-info"></i>
+                            {% endif %}
+                            <span>{{ message }}</span>
+                        </div>
+                        <button type="button" class="alert-close-btn" aria-label="Close alert">&times;</button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Main Dynamic Content Block -->
+    <main class="site-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-inner">
+                <p>&copy; 2026 <strong>Online Examination System</strong> &bull; College Mini Project</p>
+                <p><i class="fa-solid fa-shield-halved"></i> Powered by Python Flask &amp; SQLite</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Custom JavaScript -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

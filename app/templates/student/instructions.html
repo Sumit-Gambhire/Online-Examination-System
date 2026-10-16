@@ -1,0 +1,87 @@
+{% extends "student_layout.html" %}
+
+{% block title %}Instructions - {{ exam.title }} - Online Examination System{% endblock %}
+{% block page_title %}Examination Instructions{% endblock %}
+
+{% block student_content %}
+<div style="max-width: 850px; margin: 0 auto;">
+    <div class="card">
+        <!-- Title & Metadata Header -->
+        <div style="border-bottom: 1px solid var(--border-light); padding-bottom: 1.5rem; margin-bottom: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <span class="badge badge-primary" style="margin-bottom: 0.5rem;">Code: EXAM-{{ exam.id }}</span>
+                    <h1 style="font-size: 1.75rem; font-weight: 800; color: var(--navy-900);">{{ exam.title }}</h1>
+                    <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 0.25rem;">
+                        {{ exam.description or 'Official Computer-Based Academic Evaluation.' }}
+                    </p>
+                </div>
+                <div style="text-align: right;">
+                    <span class="badge badge-neutral" style="font-size: 0.85rem; padding: 0.4rem 0.85rem;">
+                        <i class="fa-regular fa-clock"></i> {{ exam.duration_minutes }} Minutes
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Summary Cards -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+            <div style="background-color: var(--bg-hover); padding: 1rem; border-radius: var(--radius-md); text-align: center;">
+                <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Total Questions</div>
+                <div style="font-size: 1.5rem; font-weight: 800; color: var(--navy-900); margin-top: 0.2rem;">{{ questions_count }}</div>
+            </div>
+            <div style="background-color: var(--bg-hover); padding: 1rem; border-radius: var(--radius-md); text-align: center;">
+                <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Maximum Marks</div>
+                <div style="font-size: 1.5rem; font-weight: 800; color: var(--navy-900); margin-top: 0.2rem;">{{ exam.total_marks }}</div>
+            </div>
+            <div style="background-color: var(--bg-hover); padding: 1rem; border-radius: var(--radius-md); text-align: center;">
+                <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Passing Criteria</div>
+                <div style="font-size: 1.5rem; font-weight: 800; color: var(--success-600); margin-top: 0.2rem;">{{ (exam.total_marks * 0.4) | round | int }} pts</div>
+            </div>
+            <div style="background-color: var(--bg-hover); padding: 1rem; border-radius: var(--radius-md); text-align: center;">
+                <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Candidate</div>
+                <div style="font-size: 1rem; font-weight: 700; color: var(--navy-900); margin-top: 0.4rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    {{ current_user.full_name }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Instructions Guidelines -->
+        <div style="margin-bottom: 2rem;">
+            <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--navy-900); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fa-solid fa-list-check text-primary"></i> Examination Instructions &amp; Rules
+            </h3>
+            
+            <ul style="padding-left: 1.5rem; line-height: 1.8; color: var(--navy-800); font-size: 0.95rem;">
+                <li><strong>Timer &amp; Auto-Submission:</strong> The examination timer will start immediately once you click the begin button. When the countdown timer reaches <code>00:00</code>, your answers will be automatically submitted.</li>
+                <li><strong>Question Navigation:</strong> You may navigate freely between questions using the Question Palette sidebar or the Next/Previous buttons.</li>
+                <li><strong>Changing Answers:</strong> You can modify your selected option at any time before final submission.</li>
+                <li><strong>Evaluation Criteria:</strong> Each question carries the marks noted in its header. There is no negative marking unless stated by the instructor.</li>
+                <li><strong>Network &amp; Browser Safety:</strong> Please avoid refreshing or closing the browser window during the active examination session.</li>
+            </ul>
+        </div>
+
+        <!-- Honor Code & Start Form -->
+        <form action="{{ url_for('student.start_exam', exam_id=exam.id) }}" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div style="background-color: var(--warning-50); border: 1.5px solid var(--warning-100); padding: 1.25rem; border-radius: var(--radius-md); margin-bottom: 1.75rem;">
+                <label class="form-check" style="align-items: flex-start; gap: 0.75rem;">
+                    <input type="checkbox" id="agree-checkbox" required style="margin-top: 0.25rem; width: 1.15rem; height: 1.15rem; accent-color: var(--indigo-600);">
+                    <span style="font-size: 0.9rem; color: #92400e; font-weight: 500;">
+                        I have read and understood all examination rules above. I confirm that I will attempt this assessment independently adhering to the academic honor code.
+                    </span>
+                </label>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <a href="{{ url_for('student.exams') }}" class="btn btn-secondary">
+                    <i class="fa-solid fa-arrow-left"></i> Return to Catalog
+                </a>
+                <button type="submit" id="start-exam-btn" class="btn btn-primary btn-lg" style="box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);">
+                    <i class="fa-solid fa-play"></i> I Agree &amp; Begin Examination
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
